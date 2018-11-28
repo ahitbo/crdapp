@@ -152,7 +152,12 @@ func (r *ReconcileApplication) Reconcile(request reconcile.Request) (reconcile.R
 		},
 	}
 
+	//注册引用，删除时会一起删除
 	if err := controllerutil.SetControllerReference(instance, deploy, r.scheme); err != nil {
+		return reconcile.Result{}, err
+	}
+
+	if err := controllerutil.SetControllerReference(instance, service, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
 
