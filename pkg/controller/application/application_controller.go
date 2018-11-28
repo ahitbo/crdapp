@@ -29,6 +29,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -117,7 +118,6 @@ func (r *ReconcileApplication) Reconcile(request reconcile.Request) (reconcile.R
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name + "-deployment",
 			Namespace: instance.Namespace,
-			Labels:    {name: instance.Name + "-deployment"},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
@@ -137,14 +137,14 @@ func (r *ReconcileApplication) Reconcile(request reconcile.Request) (reconcile.R
 		},
 	}
 
-	service := &corev1.Service{ObjectMeta: metav1.TypeMeta{Name: instance.Name + "-service",
+	service := &corev1.Service{ObjectMeta: metav1.ObjectMeta{Name: instance.Name + "-service",
 		Namespace: instance.Namespace},
 		Spec: corev1.ServiceSpec{
-			Type: corev1.ServiceType.ServiceTypeNodePort,
+			Type: corev1.ServiceTypeNodePort,
 			Ports: []corev1.ServicePort{
 				{
 					Port:       80,
-					TargetPort: 80,
+					TargetPort: intstr.FromInt(80),
 					NodePort:   38888,
 				},
 			},
