@@ -145,7 +145,7 @@ func (r *ReconcileApplication) Reconcile(request reconcile.Request) (reconcile.R
 				{
 					Port:       80,
 					TargetPort: intstr.FromInt(80),
-					NodePort:   38888,
+					NodePort:   30001,
 				},
 			},
 			Selector: map[string]string{"deployment": instance.Name + "-deployment"},
