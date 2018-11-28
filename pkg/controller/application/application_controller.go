@@ -117,6 +117,7 @@ func (r *ReconcileApplication) Reconcile(request reconcile.Request) (reconcile.R
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name + "-deployment",
 			Namespace: instance.Namespace,
+			Labels:    {name: instance.Name + "-deployment"},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
@@ -135,6 +136,22 @@ func (r *ReconcileApplication) Reconcile(request reconcile.Request) (reconcile.R
 			},
 		},
 	}
+
+	service := &corev1.Service{ObjectMeta: metav1.TypeMeta{Name: instance.Name + "-service",
+		Namespace: instance.Namespace},
+		Spec: corev1.ServiceSpec{
+			Type: corev1.ServiceType.ServiceTypeNodePort,
+			Ports: []corev1.ServicePort{
+				{
+					Port:       80,
+					TargetPort: 80,
+					NodePort:   38888,
+				},
+			},
+			Selector: map[string]string{"deployment": instance.Name + "-deployment"},
+		},
+	}
+
 	if err := controllerutil.SetControllerReference(instance, deploy, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
@@ -149,6 +166,12 @@ func (r *ReconcileApplication) Reconcile(request reconcile.Request) (reconcile.R
 		if err != nil {
 			return reconcile.Result{}, err
 		}
+		log.Printf("Creating Service %s/%s\n", service.Namespace, service.Name)
+		err = r.Create(context.TODO(), service)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+
 	} else if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -163,5 +186,6 @@ func (r *ReconcileApplication) Reconcile(request reconcile.Request) (reconcile.R
 			return reconcile.Result{}, err
 		}
 	}
+
 	return reconcile.Result{}, nil
 }
